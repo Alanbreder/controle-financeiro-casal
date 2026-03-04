@@ -1,3 +1,4 @@
+from app.models import Lancamento
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 import hashlib
@@ -7,6 +8,10 @@ from app.models import User
 import app.models as models
 
 app = FastAPI()
+
+
+Base.metadata.drop_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 # cria as tabelas
 Base.metadata.create_all(bind=engine)
