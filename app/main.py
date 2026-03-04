@@ -12,7 +12,9 @@ from app.models import User, Lancamento
 app = FastAPI()
 
 # cria tabelas se não existirem
+Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
