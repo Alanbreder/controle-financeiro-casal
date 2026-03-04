@@ -1,11 +1,11 @@
-from app.models import Lancamento
+
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 import hashlib
 from fastapi import HTTPException, Header
 from app.database import engine, SessionLocal, Base
-from app.models import User
-import app.models as models
+from app.models import User, Models, Lancamento
+
 
 app = FastAPI()
 
