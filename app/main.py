@@ -10,10 +10,8 @@ import app.models as models
 app = FastAPI()
 
 
-Base.metadata.drop_all(bind=engine)
-Base.metadata.create_all(bind=engine)
-
 # cria as tabelas
+Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 
 
