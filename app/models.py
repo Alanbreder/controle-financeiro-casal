@@ -1,6 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, Date
+from sqlalchemy import Column, Integer, String, Float, Boolean
 from app.database import Base
-from app.models import User
 
 
 class User(Base):
