@@ -148,3 +148,18 @@ def criar_lancamento(
     db.commit()
 
     return {"msg": "Lançamento criado com sucesso"}
+
+
+@app.get("/lancamentos")
+def listar_lancamentos(
+    mes: int,
+    ano: int,
+    user: User = Depends(verificar_usuario),
+    db: Session = Depends(get_db)
+):
+    lancamentos = db.query(Lancamento).filter(
+        Lancamento.mes == mes,
+        Lancamento.ano == ano
+    ).all()
+
+    return lancamentos
