@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
-from jose import JWTError, jwt
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 
-SECRET_KEY = "supersecretkeytroqueisso"
+SECRET_KEY = "troque_essa_chave_depois"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

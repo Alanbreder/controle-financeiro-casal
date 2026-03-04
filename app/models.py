@@ -21,8 +21,8 @@ class Lancamento(Base):
     mes = Column(Integer, nullable=False)
     ano = Column(Integer, nullable=False)
 
-    tipo = Column(String, nullable=False)  # fixo ou variavel
-    categoria = Column(String, nullable=False)  # casa, meu, dela
+    tipo = Column(String, nullable=False)
+    categoria = Column(String, nullable=False)
 
     reembolsavel = Column(Boolean, default=False)
     quem_deve = Column(String, nullable=True)
