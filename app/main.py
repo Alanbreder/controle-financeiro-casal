@@ -11,8 +11,8 @@ from app.auth import hash_password, verify_password, create_access_token, decode
 
 app = FastAPI()
 
-# 🔥 RESET TOTAL (TEMPORÁRIO)
-Base.metadata.drop_all(bind=engine)
+#  RESET TOTAL (TEMPORÁRIO)
+# Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 
 
@@ -81,3 +81,10 @@ def listar_lancamentos(
         Lancamento.mes == mes,
         Lancamento.ano == ano
     ).all()
+
+
+@app.get("/debug")
+def debug(db: Session = Depends(get_db)):
+    result = db.execute(
+        "SELECT column_name FROM information_schema.columns WHERE table_name = 'lancamentos';")
+    return [row[0] for row in result]
