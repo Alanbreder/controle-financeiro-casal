@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean, Date
 from app.database import Base
+from app.models import User
 
 
 class Lancamento(Base):
