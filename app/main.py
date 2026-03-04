@@ -2,6 +2,9 @@ from fastapi import FastAPI, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 import hashlib
 import uuid
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from app.auth import hash_password, verify_password, create_access_token, decode_token
+from jose import JWTError
 
 from app.database import engine, SessionLocal, Base
 from app.models import User, Lancamento
@@ -10,6 +13,7 @@ app = FastAPI()
 
 # cria tabelas se não existirem
 Base.metadata.create_all(bind=engine)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
 @app.get("/")
@@ -35,12 +39,7 @@ def get_db():
 
 @app.post("/criar-usuario")
 def criar_usuario(username: str, password: str, db: Session = Depends(get_db)):
-    senha_hash = hashlib.sha256(password.encode()).hexdigest()
-
-    usuario_existente = db.query(User).filter(
-        User.username == username).first()
-    if usuario_existente:
-        raise HTTPException(status_code=400, detail="Usuário já existe")
+    senha_hash = hash_password(password)
 
     user = User(username=username, password=senha_hash)
     db.add(user)
@@ -50,40 +49,45 @@ def criar_usuario(username: str, password: str, db: Session = Depends(get_db)):
 
 
 @app.post("/login")
-def login(username: str, password: str, db: Session = Depends(get_db)):
-    senha_hash = hashlib.sha256(password.encode()).hexdigest()
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == form_data.username).first()
 
-    user = db.query(User).filter(User.username == username).first()
-
-    if not user or user.password != senha_hash:
+    if not user or not verify_password(form_data.password, user.password):
         raise HTTPException(
             status_code=401, detail="Usuário ou senha inválidos")
 
-    return {"msg": "Login realizado com sucesso"}
+    access_token = create_access_token(data={"sub": user.username})
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
 
 
 # -----------------------
 # PROTEÇÃO SIMPLES
 # -----------------------
 
-def verificar_usuario(
-    username: str = Header(...),
-    password: str = Header(...),
-    db: Session = Depends(get_db)
-):
-    senha_hash = hashlib.sha256(password.encode()).hexdigest()
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    try:
+        payload = decode_token(token)
+        username = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Token inválido")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Token inválido")
 
     user = db.query(User).filter(User.username == username).first()
 
-    if not user or user.password != senha_hash:
-        raise HTTPException(status_code=401, detail="Não autorizado")
+    if user is None:
+        raise HTTPException(status_code=401, detail="Usuário não encontrado")
 
     return user
-
 
 # -----------------------
 # LANÇAMENTOS
 # -----------------------
+
 
 @app.post("/lancamento")
 def criar_lancamento(
@@ -98,7 +102,7 @@ def criar_lancamento(
     parcelado: bool = False,
     total_parcelas: int = None,
     observacao: str = None,
-    user: User = Depends(verificar_usuario),
+    user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
 
@@ -154,7 +158,7 @@ def criar_lancamento(
 def listar_lancamentos(
     mes: int,
     ano: int,
-    user: User = Depends(verificar_usuario),
+    user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     lancamentos = db.query(Lancamento).filter(
